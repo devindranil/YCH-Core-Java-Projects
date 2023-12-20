@@ -2,15 +2,19 @@ package gui;
 
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import backend.MyJDBC;
 import constants.CommonConstants;
 
 public class RegisterFormGui extends Form {
@@ -68,12 +72,50 @@ public class RegisterFormGui extends Form {
         reenterpasswordTextField.setForeground(CommonConstants.TEXT_COLOR);
         reenterpasswordTextField.setFont(new Font("Dialog", Font.PLAIN, 24));
 
-        /* CREATE A LOG IN BUTTON */
+        /* CREATE A REGISTER BUTTON */
         JButton registerButton = new JButton("Register");
         registerButton.setFont(new Font("Dialog", Font.BOLD, 18));
         registerButton.setBounds(125, 520, 250, 50);
         registerButton.setBackground(CommonConstants.TEXT_COLOR);
         registerButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        /* backend code goes here */
+        registerButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // get username
+                String username = userenameTextField.getText();
+
+                // get password
+                String password = new String(passwordTextField.getPassword());
+
+                // get Re enter password
+                String rePassword = new String(passwordTextField.getPassword());
+
+                // validate user input
+                if (validateUserInput(username, password, rePassword)) {
+                    // register the user to the DB
+                    if (MyJDBC.register(username, rePassword)) {
+                        // dispose of this gui
+                        RegisterFormGui.this.dispose();
+
+                        // take user back to the login gui
+                        LoginFormGui loginFormGui = new LoginFormGui();
+                        loginFormGui.setVisible(true);
+
+                        // create a result dialog box
+                        JOptionPane.showMessageDialog(loginFormGui, "Registered Account Succesfull!..");
+                    } else {
+                        // register failed(likely due to the user alredy exist in the data base)
+                        JOptionPane.showMessageDialog(RegisterFormGui.this, "Error: Username alraedy taken");
+                    }
+                } else {
+                    // Invalid user Input
+                    JOptionPane.showMessageDialog(RegisterFormGui.this,
+                            "Error: Username must be at least 6 charcters long \n and or password must match");
+                }
+            }
+        });
 
         /* CREATE A LOGIN LABEL(WHICH IS USED TO LOAD THE LOGIN GUI) */
         JLabel loginLabel = new JLabel("Have an account? Login Here");
@@ -105,5 +147,26 @@ public class RegisterFormGui extends Form {
         add(reenterpasswordTextField);
         add(registerButton);
         add(loginLabel);
+    }
+
+    // so here we are going to validate our user input, making sure that user has
+    // placed a valid username and password
+    private boolean validateUserInput(String username, String password, String rePassword) {
+        // all fields must have a value
+        if (username.length() == 0 || password.length() == 0 || rePassword.length() == 0) {
+            return false;
+        }
+
+        // username has to be atleast a 6 characters long
+        if (username.length() < 6) {
+            return false;
+        }
+
+        // password and rePassword must be the same like username
+        if (!password.equals(rePassword)) {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -2,15 +2,19 @@ package gui;
 
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import backend.MyJDBC;
 import constants.CommonConstants;
 
 public class LoginFormGui extends Form{
@@ -62,6 +66,29 @@ public class LoginFormGui extends Form{
         loginButton.setBounds(125, 520, 250, 50);
         loginButton.setBackground(CommonConstants.TEXT_COLOR);
         loginButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        // add login cedentials validation
+        loginButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // we will first retrieve the suername and password value from our user
+                // get username
+                String username  = userenameTextField.getText();
+
+                // get password
+                String password = new String(passwordTextField.getPassword());
+
+                // check databse if the username and password combo is valid or not
+                if(MyJDBC.validateLogin(username, password)){
+                    // login successful
+                    JOptionPane.showMessageDialog(LoginFormGui.this, "Login Successful!..");
+                }else{
+                    // login failed
+                    JOptionPane.showMessageDialog(LoginFormGui.this, "Login Failed!..");
+                }
+            }
+            
+        });
 
         /*CREATE A REGISTER LABEL(WHICH IS USED TO LOAD THE REGISTER GUI) */
         JLabel registerLabel = new JLabel("Not a User? Register Here");
